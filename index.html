@@ -1,260 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Justin Hilton Photography</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-
-  <style>
-    /* Reset & base styles */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Roboto', sans-serif; background: #fafafa; color: #222; line-height: 1.6; }
-
-    /* Header */
-    header {
-      background: #111;
-      color: #fff;
-      padding: 25px 20px;
-      text-align: center;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    header h1 { font-family: 'Playfair Display', serif; font-size: 2.8em; letter-spacing: 1px; margin-bottom: 10px; }
-    nav { margin-top: 10px; }
-    nav a {
-      margin: 0 15px;
-      text-decoration: none;
-      color: #eee;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-    nav a:hover { color: #fff; text-decoration: underline; }
-
-    /* Gallery */
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 12px;
-      padding: 30px 20px;
-      max-width: 1200px;
-      margin: auto;
-    }
-    .gallery img {
-      width: 100%;
-      display: block;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.3s, box-shadow 0.3s;
-      object-fit: cover;
-      height: 200px;
-    }
-    .gallery img:hover {
-      transform: scale(1.03);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-
-    /* Sections */
-    section {
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 0 20px;
-    }
-    section h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2em;
-      margin-bottom: 15px;
-      border-bottom: 2px solid #111;
-      display: inline-block;
-      padding-bottom: 5px;
-    }
-    section p { font-size: 1.2em; color: #444; }
-
-    /* About Section */
-    .about-container {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      margin-top: 20px;
-      flex-wrap: wrap;
-    }
-    .about-photo img {
-      width: 200px;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 50%;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      border: 3px solid #111;
-    }
-    .about-text p {
-      font-size: 1.3em;
-      line-height: 1.8;
-      color: #333;
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 25px 20px;
-      background: #111;
-      color: #fff;
-      margin-top: 50px;
-      font-size: 0.95em;
-    }
-
-    /* Lightbox */
-    #lightbox {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    #lightbox.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    #lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      transition: transform 0.3s ease;
-    }
-
-    /* Lightbox arrows */
-    .arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 3em;
-      color: #fff;
-      cursor: pointer;
-      user-select: none;
-      padding: 0 15px;
-      transition: color 0.2s;
-    }
-    .arrow:hover { color: #ddd; }
-    .arrow.left { left: 10px; }
-    .arrow.right { right: 10px; }
-
-    @media (max-width: 768px) {
-      .about-container {
-        flex-direction: column;
-        text-align: center;
-      }
-      .about-photo img {
-        margin-bottom: 20px;
-      }
-      .about-text p {
-        font-size: 1.2em;
-      }
-      .gallery img { height: 150px; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<header>
-  <h1>Justin Hilton Photography</h1>
-  <nav>
-    <a href="#gallery">Gallery</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
+  <!-- NAV -->
+  <nav class="top-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">Justin Hilton Photography</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
   </nav>
-</header>
 
-<section id="gallery" class="gallery">
-  <!-- Photos load dynamically -->
-</section>
+  <!-- BANNER -->
+  <header class="banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+      <h1>Justin Hilton Photography</h1>
+      <p>I take photos sometimes 🤗</p>
+    </div>
+  </header>
 
-<section id="about">
-  <h2>About Me</h2>
-  <div class="about-container">
-    <div class="about-photo">
-      <img src="photos/profile.jpg" alt="Justin Hilton">
-    </div>
-    <div class="about-text">
-      <p>Hello! I'm <strong>Justin Hilton</strong>, a passionate photographer capturing moments that tell a story. From landscapes to portraits, I love turning everyday scenes into timeless memories.</p>
-    </div>
+  <!-- GALLERY -->
+  <section class="gallery">
+    <h2 class="gallery-title">Gallery</h2>
+    <div class="masonry" id="gallery"></div>
+  </section>
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox" class="lightbox">
+    <span class="close">&times;</span>
+    <span class="prev">&#10094;</span>
+    <span class="next">&#10095;</span>
+    <img class="lightbox-img" src="" alt="">
   </div>
-</section>
 
-<section id="contact">
-  <h2>Contact</h2>
-  <p>Email: <a href="mailto:justinhiltonphotography@gmail.com">justinhiltonphotography@gmail.com</a></p>
-</section>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>📧 Contact me by email: <a href="mailto:justinhiltonphotography@gmail.com">justinhiltonphotography@gmail.com</a></p>
+  </footer>
 
-<footer>
-  &copy; 2025 Justin Hilton Photography
-</footer>
+  <script>
+    const gallery = document.getElementById("gallery");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.querySelector(".lightbox-img");
+    const closeBtn = document.querySelector(".close");
+    const prevBtn = document.querySelector(".prev");
+    const nextBtn = document.querySelector(".next");
 
-<!-- Lightbox -->
-<div id="lightbox">
-  <div class="arrow left">&#10094;</div>
-  <img src="" alt="Expanded Photo">
-  <div class="arrow right">&#10095;</div>
-</div>
+    let images = [];
+    let currentIndex = 0;
 
-<script>
-const gallery = document.querySelector('.gallery');
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = lightbox.querySelector('img');
-const leftArrow = lightbox.querySelector('.arrow.left');
-const rightArrow = lightbox.querySelector('.arrow.right');
+    fetch("/api/photos")
+      .then(res => res.json())
+      .then(files => {
+        images = files;
+        files.forEach((file, i) => {
+          const img = document.createElement("img");
+          img.src = `photos/${file}`;
+          img.alt = "";
+          img.classList.add("gallery-img");
+          gallery.appendChild(img);
 
-let photosArray = [];
-let currentIndex = 0;
+          img.addEventListener("click", () => {
+            currentIndex = i;
+            openLightbox();
+          });
+        });
+      });
 
-function openLightbox(index) {
-  currentIndex = index;
-  lightboxImg.src = 'photos/' + photosArray[currentIndex];
-  lightbox.classList.add('active');
-}
+    function openLightbox() {
+      lightbox.style.display = "flex";
+      lightboxImg.src = `photos/${images[currentIndex]}`;
+    }
 
-function closeLightbox(e) {
-  if (e.target === lightbox) {
-    lightbox.classList.remove('active');
-  }
-}
+    function closeLightbox() {
+      lightbox.style.display = "none";
+      lightboxImg.src = "";
+    }
 
-function prevPhoto() {
-  currentIndex = (currentIndex - 1 + photosArray.length) % photosArray.length;
-  lightboxImg.src = 'photos/' + photosArray[currentIndex];
-}
+    function prevImage() {
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      lightboxImg.src = `photos/${images[currentIndex]}`;
+    }
 
-function nextPhoto() {
-  currentIndex = (currentIndex + 1) % photosArray.length;
-  lightboxImg.src = 'photos/' + photosArray[currentIndex];
-}
+    function nextImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      lightboxImg.src = `photos/${images[currentIndex]}`;
+    }
 
-// Load photos dynamically
-fetch('/api/photos')
-  .then(res => res.json())
-  .then(photos => {
-    photosArray = photos;
-    photos.forEach((photo, i) => {
-      const img = document.createElement('img');
-      img.src = 'photos/' + photo;
-      img.alt = photo;
-      img.onclick = () => openLightbox(i);
-      gallery.appendChild(img);
+    closeBtn.addEventListener("click", closeLightbox);
+    prevBtn.addEventListener("click", prevImage);
+    nextBtn.addEventListener("click", nextImage);
+
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) closeLightbox();
     });
-  })
-  .catch(err => console.error('Error loading photos:', err));
 
-// Event listeners
-lightbox.addEventListener('click', closeLightbox);
-leftArrow.addEventListener('click', prevPhoto);
-rightArrow.addEventListener('click', nextPhoto);
-</script>
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") prevImage();
+      if (e.key === "ArrowRight") nextImage();
+    });
+  </script>
 
 </body>
 </html>

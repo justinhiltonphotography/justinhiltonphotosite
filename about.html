@@ -8,86 +8,93 @@
     body, html {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
       color: #333;
-      background-color: #fdfdfd;
+      background-color: #f9f9f9;
     }
 
-    /* Banner section */
-    .banner {
+    /* Full-page banner container */
+    .banner-container {
+      position: relative;
       width: 100%;
-      height: 400px;
-      background: url('/photos/about-banner.jpg') center center/cover no-repeat;
+      min-height: 600px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    /* Blurred and faded background image */
+    .banner-container::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('/photos/about-banner.jpg') center center/cover no-repeat;
+      filter: blur(8px) brightness(0.4);
+      z-index: 0;
+      transition: filter 0.5s ease;
+    }
+
+    /* Content on top of banner */
+    .banner-content {
       position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 20px;
     }
 
-    .banner h1 {
-      font-size: 3rem;
-      margin: 0;
-    }
-
-    /* Profile photo */
-    .profile-container {
-      display: flex;
-      justify-content: center;
-      margin-top: -75px; /* overlap slightly with banner */
-    }
-
+    /* Circular profile photo */
     .profile-container img {
       width: 150px;
       height: 150px;
       border-radius: 50%;
-      border: 4px solid white;
+      border: 5px solid white;
       object-fit: cover;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
     }
 
-    /* About content */
+    /* Bio text */
     .about-content {
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 0 20px;
-      text-align: center;
+      background: rgba(255,255,255,0.85);
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      font-size: 1.15rem;
       line-height: 1.8;
-      font-size: 1.1rem;
+      color: #222;
     }
 
     @media (max-width: 600px) {
-      .banner h1 {
-        font-size: 2rem;
-        padding: 0 10px;
-        text-align: center;
-      }
       .profile-container img {
         width: 120px;
         height: 120px;
       }
       .about-content {
         font-size: 1rem;
+        padding: 20px 15px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Banner with background photo -->
-  <div class="banner">
-    <h1>About Me</h1>
-  </div>
+  <!-- Banner container with blurred background -->
+  <div class="banner-container">
+    <div class="banner-content">
+      <!-- Profile photo -->
+      <div class="profile-container">
+        <img src="/photos/profile.jpg" alt="Justin Hilton">
+      </div>
 
-  <!-- Circular profile photo -->
-  <div class="profile-container">
-    <img src="/photos/profile.jpg" alt="Justin Hilton">
-  </div>
-
-  <!-- About text -->
-  <div class="about-content">
-    <p>I take photos sometimes. Sometimes they're cool and sometimes they're not. I could take photos for you too if you want.</p>
+      <!-- Bio text -->
+      <div class="about-content">
+        <p>I take photos sometimes. Sometimes they're cool and sometimes they're not. I could take photos for you too if you want.</p>
+      </div>
+    </div>
   </div>
 
 </body>

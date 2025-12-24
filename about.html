@@ -29,15 +29,18 @@
       background-color: #555;
     }
 
-    /* Banner */
+    /* Banner section */
     .about-banner {
       position: relative;
-      text-align: center;
-      color: white;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
     }
 
     .about-banner img.background {
       width: 100%;
+      height: 100%;
+      object-fit: cover;
       filter: blur(4px) brightness(60%);
     }
 
@@ -46,20 +49,22 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      text-align: center;
+      color: white;
     }
 
     .profile-img {
       border-radius: 50%;
       width: 150px;
       border: 4px solid white;
-      margin-bottom: 20px;
+      display: block;
+      margin: 0 auto 20px auto;
     }
 
     .bio-text {
       max-width: 500px;
       font-size: 18px;
       margin: 0 auto;
-      color: white;
     }
 
     /* Contact section */
@@ -81,9 +86,9 @@
 
   <!-- About Banner with Profile and Bio -->
   <section class="about-banner">
-    <img src="/photos/banner-about.webp" alt="About Banner" class="background">
+    <img src="/photos/about-banner.jpg" alt="About Banner" class="background">
     <div class="banner-content">
-      <img src="/photos/profile.webp" class="profile-img" alt="Profile Photo">
+      <img src="/photos/profile.jpg" class="profile-img" alt="Profile Photo">
       <p class="bio-text">
         I take photos sometimes. Sometimes they're cool and sometimes they're not. I could take photos for you too if you want.
       </p>
@@ -92,7 +97,7 @@
 
   <!-- Contact Me Section -->
   <section class="contact-me">
-    <p>Email me at <a href="mailto:your-email@example.com">your-email@example.com</a> if you want me to try and take some photos for you. No promises they'll be good lol.</p>
+    <p>Email me at <a href="mailto:justinhiltonphotography@gmail.com">justinhiltonphotography@gmail.com</a> if you want me to try and take some photos for you. No promises they'll be good lol.</p>
   </section>
 
 </body>

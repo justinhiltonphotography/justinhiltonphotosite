@@ -13,6 +13,7 @@
       text-align: center;
     }
 
+    /* Home button */
     .home-button {
       display: inline-block;
       margin: 20px;
@@ -28,13 +29,14 @@
       background-color: #555;
     }
 
+    /* Banner */
     .about-banner {
       position: relative;
       text-align: center;
       color: white;
     }
 
-    .about-banner img {
+    .about-banner img.background {
       width: 100%;
       filter: blur(4px) brightness(60%);
     }
@@ -57,8 +59,10 @@
       max-width: 500px;
       font-size: 18px;
       margin: 0 auto;
+      color: white;
     }
 
+    /* Contact section */
     .contact-me {
       margin: 40px auto;
       font-size: 22px;
@@ -66,6 +70,7 @@
       background: #f4f4f4;
       padding: 20px;
       border-radius: 8px;
+      color: black;
     }
   </style>
 </head>
@@ -74,9 +79,9 @@
   <!-- Home Button -->
   <a href="/index.html" class="home-button">Home</a>
 
-  <!-- About Banner -->
+  <!-- About Banner with Profile and Bio -->
   <section class="about-banner">
-    <img src="/photos/profile.webp" alt="About Banner">
+    <img src="/photos/banner-about.webp" alt="About Banner" class="background">
     <div class="banner-content">
       <img src="/photos/profile.webp" class="profile-img" alt="Profile Photo">
       <p class="bio-text">
@@ -87,7 +92,7 @@
 
   <!-- Contact Me Section -->
   <section class="contact-me">
-    <p>Email me if you want me to try and take some photos for you. No promises they'll be good lol.</p>
+    <p>Email me at <a href="mailto:your-email@example.com">your-email@example.com</a> if you want me to try and take some photos for you. No promises they'll be good lol.</p>
   </section>
 
 </body>

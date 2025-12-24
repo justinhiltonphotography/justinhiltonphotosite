@@ -1,6 +1,24 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
+app.use(express.json());
+// Get all votes
+app.get("/votes", (req, res) => {
+  const votes = readVotes();
+  res.json(votes);
+});
+
+// Vote for a photo
+app.post("/vote", (req, res) => {
+  const { photo } = req.body;
+
+  if (!photo) {
+    return res.status(400).send("No photo provided");
+  }
+
+  const votes = readVotes();
+  votes[photo] = (votes[photo] || 0) + 1;
+  writeVotes(votes);
+
+  res.json({ success: true, votes: votes[photo] });
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,4 +48,21 @@ app.get("/api/photos", (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+// Get votes
+app.get("/votes", (req, res) => {
+  const votes = readVotes();
+  res.json(votes);
+});
+
+// Vote for a photo
+app.post("/vote", (req, res) => {
+  const { photo } = req.body;
+  if (!photo) return res.status(400).send("No photo provided");
+
+  const votes = readVotes();
+  votes[photo] = (votes[photo] || 0) + 1;
+  writeVotes(votes);
+
+  res.json({ success: true, votes: votes[photo] });
 });

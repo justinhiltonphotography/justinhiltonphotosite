@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Desert Strike — ACE Mode (Single File)</title>
+<style>
+  html,body{margin:0;height:100%;background:#0b0b0b;color:#eaeaea;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  #wrap{display:flex;align-items:center;justify-content:center;height:100%}
+  #game{border:2px solid #222;background:#111;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  #hud{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:12px;padding:6px 12px;border-radius:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px)}
+  .badge{padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);font-weight:600}
+  .ok{background:#223b2b} .warn{background:#4b3a1a} .dead{background:#4b1a1a}
+  #overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);font-size:22px}
+  #msg{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;opacity:.85;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="900" height="600"></canvas></div>
+
+<div id="hud">
+  <span>Reactors: <span id="hits" class="badge">0</span></span>
+  <span>Passed: <span id="passed" class="badge">0</span></span>
+  <span>Shots: <span id="shots" class="badge">0</span></span>
+  <span>Best: <span id="best" class="badge">0</span></span>
+  <span>ACE: <span id="ace" class="badge">0</span></span>
+  <span id="state" class="badge ok">PLAYING</span>
+</div>
+<div id="overlay">Click or press any key to start</div>
+<div id="msg">Arrows = move bombsight • Space = fire • R = restart • P = pause</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const planeY = H * 0.22;
+
+  // -------- Tuning --------
+  const ACE_LIMIT = 100;
+  const ACE_WEIGHTS = { shot:1, passed:1, destroyed:-2 };
+  const BASE_SCROLL = 2.2;
+  const FIRE_COOLDOWN_MS = 150;
+  const SIGHT_SPEED = 6;
+  const REACTOR_CHANCE = 0.5;
+  const SPAWN_MIN = 24, SPAWN_MAX = 46;
+
+  function difficulty(timeSeconds, reactorsDestroyed){
+    return 1 + timeSeconds*0.02 + reactorsDestroyed*0.02;
+  }
+
+  // -------- State --------
+  let t=0, started=false, paused=false, gameOver=false;
+  let bgOffset=0;
+  let objects=[], flashes=[], floaters=[];
+  let keys={};
+
+  let shots=0, hits=0, passed=0, ace=0;
+  let bestHits = parseInt(localStorage.getItem('ace_best_hits_v1')||'0',10);
+
+  let lastFire=0, spawnTimer=0, nextSpawn=40;
+
+  const hud = {
+    shots:  document.getElementById('shots'),
+    hits:   document.getElementById('hits'),
+    passed: document.getElementById('passed'),
+    ace:    document.getElementById('ace'),
+    best:   document.getElementById('best'),
+    state:  document.getElementById('state'),
+    overlay:document.getElementById('overlay'),
+  };
+  hud.best.textContent = bestHits;
+
+  const sight = { x: W/2, y: H*0.56 };
+
+  // -------- Audio (lazy init) --------
+  let AC=null;
+  function ensureAC(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }
+  function beep(freq=440,dur=0.08,type='square',gain=0.03){ try{
+    ensureAC(); const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=gain; o.connect(g); g.connect(AC.destination);
+    const now=AC.currentTime; o.start(now); g.gain.exponentialRampToValueAtTime(0.0001, now+dur); o.stop(now+dur);
+  }catch(e){} }
+  function boom(good=true){ beep(good?180:120,0.12,'sawtooth',0.05); setTimeout(()=>beep(good?140:90,0.12,'square',0.045),60); }
+  function alertTone(){ beep(380,0.12,'triangle',0.06); setTimeout(()=>beep(300,0.12,'triangle',0.06),110); }
+
+  // -------- Input --------
+  function startGameIfNeeded(){
+    if (!started){
+      started = true;
+      hud.overlay.style.display = 'none';
+      for(let i=0;i<6;i++) spawnObject(-H + i*(H/6));
+      updateHud();
+    }
+  }
+  window.addEventListener('keydown', (e)=>{
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','p','P','r','R'].includes(e.key)) e.preventDefault();
+    startGameIfNeeded();
+    keys[e.key]=true;
+    if (e.key===' ') fire();
+    if (e.key==='p' || e.key==='P'){ paused=!paused; updateHud(); }
+    if (e.key==='r' || e.key==='R') reset();
+  });
+  window.addEventListener('keyup', (e)=>{ keys[e.key]=false; });
+  window.addEventListener('mousedown', startGameIfNeeded);
+  window.addEventListener('touchstart', startGameIfNeeded, {passive:false});
+
+  function moveSight(){
+    if (keys.ArrowLeft)  sight.x -= SIGHT_SPEED;
+    if (keys.ArrowRight) sight.x += SIGHT_SPEED;
+    if (keys.ArrowUp)    sight.y -= SIGHT_SPEED;
+    if (keys.ArrowDown)  sight.y += SIGHT_SPEED;
+    sight.x = Math.max(20, Math.min(W-20, sight.x));
+    sight.y = Math.max(planeY+30, Math.min(H-20, sight.y));
+  }
+
+  // -------- Objects --------
+  const CIVIL_DRAWERS = [
+    (o)=>drawApartment(o.x,o.y,o.r/26, o.tint),
+    (o)=>drawDeer(o.x,o.y,o.r/18),
+    (o)=>drawTent(o.x,o.y,o.r/22),
+    (o)=>drawWaterTower(o.x,o.y,o.r/22),
+  ];
+  function spawnObject(yOverride=null){
+    const isReactor = Math.random() < REACTOR_CHANCE;
+    const x = rand(80, W-80);
+    const y = yOverride!==null ? yOverride : -40;
+    const r = isReactor ? rand(22,34) : rand(18,30);
+    if (isReactor){
+      objects.push({x,y,r,type:'reactor'});
+    } else {
+      const variant = randInt(0, CIVIL_DRAWERS.length-1);
+      const tint = ['#8ab6d6','#9fc5a3','#bcaadf','#c8e6c9'][randInt(0,3)];
+      objects.push({x,y,r,type:'civil',variant,tint});
+    }
+  }
+
+  // -------- Fire (instant) --------
+  function fire(){
+    if (paused || gameOver || !started) return;
+    const now = performance.now();
+    if (now - lastFire < FIRE_COOLDOWN_MS) return;
+    lastFire = now;
+
+    shots++;
+    flashes.push({x:sight.x,y:sight.y,r:6,life:14});
+
+    let hitIndex=-1;
+    for (let i=0;i<objects.length;i++){
+      const o=objects[i], dx=sight.x-o.x, dy=sight.y-o.y;
+      if (dx*dx + dy*dy <= o.r*o.r){ hitIndex=i; break; }
+    }
+
+    if (hitIndex>=0){
+      const o=objects[hitIndex];
+      if (o.type==='reactor'){
+        hits++;
+        // Update BEST immediately if beaten
+        if (hits > bestHits){
+          bestHits = hits;
+          localStorage.setItem('ace_best_hits_v1', String(bestHits));
+          popText('NEW BEST!', sight.x, sight.y-26, '#80e27e');
+        } else {
+          popText('+REACTOR', sight.x, sight.y-18, '#ffd740');
+        }
+        boom(true);
+        objects.splice(hitIndex,1);
+      } else {
+        popText('CIVILIAN HIT!', sight.x, sight.y-18, '#ff5252'); boom(false);
+        gameOver = true;
+      }
+    } else {
+      popText('MISS', sight.x, sight.y-18, '#cfd8dc'); beep(420,0.04,'square',0.02);
+    }
+
+    recomputeACE();
+    updateHud();
+  }
+
+  // -------- Drawing --------
+  function drawDesert(speedMul){
+    const s = BASE_SCROLL * 0.65 * speedMul;
+    bgOffset = (bgOffset + s) % 40;
+    ctx.fillStyle = '#d7c28f'; ctx.fillRect(0,0,W,H);
+    for(let y=-40;y<H+40;y+=40){
+      const yy = y + bgOffset;
+      ctx.fillStyle='#d0b983'; ctx.fillRect(0,yy,W,20);
+      ctx.fillStyle='#c9b27a'; ctx.fillRect(0,yy+13,W,7);
+    }
+    ctx.globalAlpha=.25; ctx.fillStyle='#a98f5a';
+    for(let i=0;i<60;i++){
+      const x=((i*91)%W);
+      const y=(Math.sin((t+i)*0.07)*130 + (i*37)%H + bgOffset*.7)%H;
+      ctx.beginPath(); ctx.arc(x,y,1.7,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+  function drawRadioactiveSymbol(cx,cy,r){
+    ctx.save(); ctx.translate(cx,cy);
+    ctx.fillStyle='#212121'; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#f6e652'; ctx.beginPath(); ctx.arc(0,0,r*.92,0,Math.PI*2); ctx.fill();
+    const blade='#2d2d2d';
+    for(let i=0;i<3;i++){
+      ctx.save(); ctx.rotate(i*2*Math.PI/3);
+      ctx.beginPath(); ctx.moveTo(0,0);
+      ctx.arc(0,0,r*.74,Math.PI/6,Math.PI/2.2); ctx.lineTo(0,0); ctx.closePath();
+      ctx.fillStyle=blade; ctx.fill(); ctx.restore();
+    }
+    ctx.fillStyle='#2d2d2d'; ctx.beginPath(); ctx.arc(0,0,r*.18,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  function roundRect(x,y,w,h,r,fill,stroke){
+    ctx.beginPath(); ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    if(fill) ctx.fill(); if(stroke) ctx.stroke();
+  }
+  function drawApartment(x,y,scale=1,tone='#8ab6d6'){
+    ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+    ctx.fillStyle=tone; ctx.strokeStyle='#1b2a35'; ctx.lineWidth=2;
+    roundRect(-28,-22,56,44,4,true,true);
+    ctx.fillStyle='#e3f2fd';
+    for(let r=-1;r<=1;r++) for(let c=-2;c<=2;c++){
+      if(Math.abs(r)+Math.abs(c)===4) continue;
+      ctx.fillRect(c*10-5, r*12-4, 8,8);
+    }
+    ctx.fillStyle='#cfd8dc'; ctx.fillRect(-6,10,12,12);
+    ctx.restore();
+  }
+  function drawDeer(x,y,scale=1){
+    ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale); ctx.lineWidth=2;
+    ctx.fillStyle='#b47b46'; ctx.strokeStyle='#5d3a1a';
+    ctx.beginPath(); ctx.ellipse(0,0,16,10,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(18,-6,8,6,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle='#5d3a1a';
+    ctx.beginPath(); ctx.moveTo(-8,9); ctx.lineTo(-8,18);
+    ctx.moveTo(0,9);  ctx.lineTo(0,18);
+    ctx.moveTo(10,9); ctx.lineTo(10,18);
+    ctx.moveTo(18,2); ctx.lineTo(18,18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(22,-12); ctx.lineTo(26,-18);
+    ctx.moveTo(20,-12); ctx.lineTo(16,-18); ctx.stroke();
+    ctx.restore();
+  }
+  function drawTent(x,y,scale=1){
+    ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+    ctx.fillStyle='#7e6b40'; ctx.strokeStyle='#4e4326'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(22,12); ctx.lineTo(-22,12); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle='#5a4f2b'; ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(0,12); ctx.stroke();
+    ctx.restore();
+  }
+  function drawWaterTower(x,y,scale=1){
+    ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+    ctx.fillStyle='#b0bec5'; ctx.strokeStyle='#455a64'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.ellipse(0,-12,16,10,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-8,-2); ctx.lineTo(-14,18);
+    ctx.moveTo(8,-2);  ctx.lineTo(14,18);
+    ctx.moveTo(-4,-2); ctx.lineTo(-4,18);
+    ctx.moveTo(4,-2);  ctx.lineTo(4,18); ctx.stroke();
+    ctx.restore();
+  }
+
+  // -------- FX --------
+  function popText(text,x,y,color='#fff'){ floaters.push({text,x,y,vy:-0.6,life:60,color}); }
+
+  // -------- ACE --------
+  function recomputeACE(){
+    ace = shots*ACE_WEIGHTS.shot + passed*ACE_WEIGHTS.passed + hits*ACE_WEIGHTS.destroyed;
+    if (!gameOver && ace >= ACE_LIMIT){
+      popText('ACE LIMIT REACHED', W/2, H*0.35, '#ff8a80'); alertTone();
+      gameOver = true;
+    }
+  }
+
+  // -------- Loop --------
+  function update(){
+    if (paused || !started || gameOver) return;
+    t++;
+
+    const seconds = t/60;
+    const diff = difficulty(seconds, hits);
+    moveSight();
+
+    // spawn faster with difficulty
+    spawnTimer++;
+    const spMin = Math.max(10, Math.floor(SPAWN_MIN / Math.sqrt(diff)));
+    const spMax = Math.max(spMin+5, Math.floor(SPAWN_MAX / Math.sqrt(diff)));
+    if (spawnTimer >= nextSpawn){
+      spawnTimer = 0; nextSpawn = randInt(spMin, spMax);
+      spawnObject();
+    }
+
+    // move objects faster with difficulty
+    const objSpeed = BASE_SCROLL * diff;
+    for (let i=objects.length-1;i>=0;i--){
+      const o = objects[i];
+      o.y += objSpeed;
+      if (o.y - o.r > H+50){
+        if (o.type === 'reactor'){
+          passed++;
+          popText('REACTOR PASSED', o.x, H-30, '#ffcc80');
+          alertTone();
+          recomputeACE();
+        }
+        objects.splice(i,1);
+      }
+    }
+
+    // fx decay
+    for (let i=flashes.length-1;i>=0;i--){ if (--flashes[i].life<=0) flashes.splice(i,1); else flashes[i].r += 2.5; }
+    for (let i=floaters.length-1;i>=0;i--){ if (--floaters[i].life<=0) floaters.splice(i,1); else floaters[i].y += floaters[i].vy; }
+  }
+
+  function render(){
+    const seconds = t/60;
+    const diff = difficulty(seconds, hits);
+    drawDesert(diff);
+
+    // objects
+    objects.forEach(o=>{
+      if (o.type==='reactor'){ drawRadioactiveSymbol(o.x, o.y, o.r); }
+      else { CIVIL_DRAWERS[o.variant % CIVIL_DRAWERS.length](o); }
+    });
+
+    // FX
+    flashes.forEach(f=>{
+      ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=f.life/14;
+      const g=ctx.createRadialGradient(f.x,f.y,1,f.x,f.y,f.r);
+      g.addColorStop(0,'rgba(255,255,255,.9)'); g.addColorStop(1,'rgba(255,214,64,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill(); ctx.restore();
+    });
+    ctx.save(); ctx.font='bold 14px system-ui,sans-serif'; ctx.textAlign='center';
+    floaters.forEach(fl=>{ ctx.globalAlpha=Math.max(0, fl.life/60); ctx.fillStyle=fl.color; ctx.fillText(fl.text, fl.x, fl.y); });
+    ctx.restore();
+
+    // crosshair
+    ctx.save(); ctx.translate(sight.x, sight.y); ctx.strokeStyle='#e0f2f1'; ctx.lineWidth=2;
+    const r=20; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-r-6,0); ctx.lineTo(-4,0); ctx.moveTo(r+6,0); ctx.lineTo(4,0);
+    ctx.moveTo(0,-r-6); ctx.lineTo(0,-4); ctx.moveTo(0,r+6); ctx.lineTo(0,4); ctx.stroke();
+    ctx.restore();
+
+    updateHud();
+  }
+
+  function updateHud(){
+    hud.shots.textContent  = shots;
+    hud.hits.textContent   = hits;         // current run = your score
+    hud.passed.textContent = passed;
+    hud.ace.textContent    = ace.toFixed(0);
+    hud.best.textContent   = bestHits;     // best across all runs
+    hud.ace.className = 'badge ' + (ace >= ACE_LIMIT*0.75 ? 'warn' : 'ok');
+    const st = paused ? 'PAUSED' : (gameOver ? 'GAME OVER' : 'PLAYING');
+    hud.state.textContent = st;
+    hud.state.className = 'badge ' + (gameOver ? 'dead' : (ace >= ACE_LIMIT*0.75 ? 'warn' : 'ok'));
+  }
+
+  function loop(){ requestAnimationFrame(loop); update(); render(); }
+  loop();
+
+  function reset(){
+    t=0; bgOffset=0; objects.length=0; flashes.length=0; floaters.length=0;
+    shots=0; hits=0; passed=0; ace=0;
+    paused=false; gameOver=false;
+    sight.x=W/2; sight.y=H*0.56; spawnTimer=0; nextSpawn=40;
+    started=false; hud.overlay.style.display='flex';
+    updateHud();
+  }
+
+  // -------- utils --------
+  function rand(a,b){ return Math.random()*(b-a)+a; }
+  function randInt(a,b){ return (Math.random()*(b-a+1)|0)+a; }
+})();
+</script>
+</body>
+</html>

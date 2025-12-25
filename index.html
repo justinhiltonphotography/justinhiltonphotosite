@@ -1,262 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Justin Hilton Photography</title>
+  <meta charset="UTF-8" />
+  <title>Justin Hilton Photography</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f7f6f2;
+      color: #222;
+    }
 
-<style>
-:root{
-  --bg:#f7f6f3;
-  --card:#ffffff;
-  --text:#1f2933;
-  --muted:#6b7280;
-  --accent:#e63946;
-  --border:#e5e7eb;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Inter,system-ui,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
+    header {
+      text-align: center;
+      padding: 30px 20px 10px;
+    }
 
-/* NAV */
-nav{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:16px 28px;
-  background:#fff;
-  border-bottom:1px solid var(--border);
-}
-nav a{
-  text-decoration:none;
-  color:var(--text);
-  font-weight:600;
-  margin-left:18px;
-}
+    header img {
+      width: 100%;
+      max-width: 1400px;
+      height: auto;
+      border-radius: 10px;
+    }
 
-/* BANNER */
-header{
-  background:url("photos/banner.jpg") center/cover no-repeat;
-  height:420px; /* WIDER */
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-header h1{
-  font-family:"Playfair Display",serif;
-  font-size:3.2rem;
-  color:#fff;
-  background:rgba(0,0,0,.45);
-  padding:18px 36px;
-  border-radius:10px;
-}
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin: 18px 0 10px;
+      letter-spacing: 1px;
+    }
 
-/* CONTROLS */
-.controls{
-  display:flex;
-  justify-content:center;
-  gap:14px;
-  margin:48px 0 20px; /* moved gallery DOWN */
-}
-.controls button{
-  padding:8px 18px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:white;
-  cursor:pointer;
-  font-weight:600;
-}
+    .nav-buttons {
+      margin-bottom: 20px;
+    }
 
-/* GALLERY */
-.gallery{
-  max-width:1500px;
-  margin:auto;
-  padding:0 24px 60px;
-  columns:4 320px;
-  column-gap:20px;
-}
-.card{
-  background:var(--card);
-  border-radius:10px;
-  margin-bottom:20px;
-  overflow:hidden;
-  break-inside:avoid;
-  box-shadow:0 6px 18px rgba(0,0,0,.06);
-  cursor:pointer;
-}
-.card img{
-  width:100%;
-  display:block;
-}
-.card-footer{
-  display:flex;
-  justify-content:flex-end;
-  padding:10px 12px;
-}
-.like-btn{
-  border:none;
-  background:none;
-  cursor:pointer;
-  font-size:18px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  color:var(--muted);
-}
-.like-btn.liked{color:var(--accent)}
+    .nav-buttons a {
+      display: inline-block;
+      margin: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      background: #e5e3dd;
+      text-decoration: none;
+      color: #222;
+      font-size: 14px;
+    }
 
-footer{
-  text-align:center;
-  padding:28px;
-  color:var(--muted);
-  font-size:14px;
-}
+    .controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-/* LIGHTBOX */
-.lightbox{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.9);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-.lightbox img{
-  max-width:90%;
-  max-height:85%;
-}
-.lb-btn{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:42px;
-  color:white;
-  background:none;
-  border:none;
-  cursor:pointer;
-}
-.lb-prev{left:30px}
-.lb-next{right:30px}
-.lb-close{
-  position:absolute;
-  top:20px;
-  right:30px;
-  font-size:36px;
-  background:none;
-  border:none;
-  color:white;
-  cursor:pointer;
-}
+    .controls button {
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #ddd;
+    }
 
-@media(max-width:800px){
-  header h1{font-size:2.4rem}
-}
-</style>
+    .gallery {
+      column-count: 4;
+      column-gap: 14px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    @media (max-width: 1100px) {
+      .gallery { column-count: 3; }
+    }
+    @media (max-width: 700px) {
+      .gallery { column-count: 2; }
+    }
+
+    .photo {
+      break-inside: avoid;
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .photo img {
+      width: 100%;
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+      text-align: center;
+      color: white;
+    }
+
+    .modal img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 8px;
+    }
+
+    .like-btn {
+      margin-top: 12px;
+      padding: 10px 16px;
+      font-size: 16px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px;
+    }
+
+    .left { left: -60px; }
+    .right { right: -60px; }
+
+    footer {
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
 </head>
 
 <body>
 
-<nav>
-  <strong>Justin Hilton Photography</strong>
-  <div>
-    <a href="about.html">About</a>
-    <a href="game.html">Bobby’s B‑2 Bomber Game</a>
-  </div>
-</nav>
-
 <header>
+  <img src="photos/banner.jpg" alt="Banner">
   <h1>Justin Hilton Photography</h1>
+
+  <div class="nav-buttons">
+    <a href="bobby-b2.html">Bobby’s B‑2 Bomber Game</a>
+    <a href="about.html">About</a>
+  </div>
 </header>
 
 <div class="controls">
-  <button onclick="sortByLikes()">Most Liked</button>
-  <button onclick="sortByNewest()">Newest</button>
+  <button onclick="sortByLikes()">Sort by Most Liked</button>
 </div>
 
-<section class="gallery" id="gallery"></section>
+<div class="gallery" id="gallery"></div>
 
-<footer>© Justin Hilton</footer>
-
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-  <button class="lb-btn lb-prev" onclick="prevPhoto()">‹</button>
-  <img id="lbImg">
-  <button class="lb-btn lb-next" onclick="nextPhoto()">›</button>
-  <button class="lb-close" onclick="closeLightbox()">✕</button>
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div class="nav-arrow left" onclick="prevPhoto()">❮</div>
+    <img id="modalImg">
+    <div class="nav-arrow right" onclick="nextPhoto()">❯</div>
+    <br>
+    <button class="like-btn" onclick="toggleLike()">❤️ Like</button>
+  </div>
 </div>
+
+<footer>
+  Contact me at: <strong>justinhiltonphotograpy@gmail.com</strong>
+</footer>
 
 <script src="photos.js"></script>
 
 <script>
-const gallery=document.getElementById("gallery");
-const lightbox=document.getElementById("lightbox");
-const lbImg=document.getElementById("lbImg");
+  const gallery = document.getElementById("gallery");
+  const modal = document.getElementById("modal");
+  const modalImg = document.getElementById("modalImg");
 
-const likes=JSON.parse(localStorage.getItem("photoLikes")||"{}");
-let currentPhotos=[...PHOTOS];
-let currentIndex=0;
+  let currentIndex = 0;
+  let likes = JSON.parse(localStorage.getItem("likes") || "{}");
 
-function render(list){
-  gallery.innerHTML="";
-  list.forEach((src,i)=>{
-    const liked=likes[src];
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`
-      <img src="${src}" loading="lazy">
-      <div class="card-footer">
-        <button class="like-btn ${liked?"liked":""}" data-src="${src}">♥</button>
-      </div>`;
-    card.onclick=()=>openLightbox(i);
-    card.querySelector(".like-btn").onclick=e=>{
-      e.stopPropagation();
-      likes[src]=!likes[src];
-      localStorage.setItem("photoLikes",JSON.stringify(likes));
-      render(currentPhotos);
-    };
-    gallery.appendChild(card);
-  });
-}
+  function render() {
+    gallery.innerHTML = "";
+    PHOTOS.forEach((src, i) => {
+      const div = document.createElement("div");
+      div.className = "photo";
+      div.innerHTML = `<img src="${src}">`;
+      div.onclick = () => openModal(i);
+      gallery.appendChild(div);
+    });
+  }
 
-function sortByLikes(){
-  currentPhotos.sort((a,b)=>(likes[b]?1:0)-(likes[a]?1:0));
-  render(currentPhotos);
-}
-function sortByNewest(){
-  currentPhotos=[...PHOTOS];
-  render(currentPhotos);
-}
+  function openModal(index) {
+    currentIndex = index;
+    modalImg.src = PHOTOS[currentIndex];
+    updateLikeButton();
+    modal.style.display = "flex";
+  }
 
-/* LIGHTBOX LOGIC */
-function openLightbox(i){
-  currentIndex=i;
-  lbImg.src=currentPhotos[i];
-  lightbox.style.display="flex";
-}
-function closeLightbox(){lightbox.style.display="none"}
-function prevPhoto(){
-  currentIndex=(currentIndex-1+currentPhotos.length)%currentPhotos.length;
-  lbImg.src=currentPhotos[currentIndex];
-}
-function nextPhoto(){
-  currentIndex=(currentIndex+1)%currentPhotos.length;
-  lbImg.src=currentPhotos[currentIndex];
-}
-document.addEventListener("keydown",e=>{
-  if(lightbox.style.display!=="flex")return;
-  if(e.key==="ArrowLeft")prevPhoto();
-  if(e.key==="ArrowRight")nextPhoto();
-  if(e.key==="Escape")closeLightbox();
-});
+  function closeModal() {
+    modal.style.display = "none";
+  }
 
-render(currentPhotos);
+  modal.onclick = e => { if (e.target === modal) closeModal(); };
+
+  function nextPhoto() {
+    currentIndex = (currentIndex + 1) % PHOTOS.length;
+    openModal(currentIndex);
+  }
+
+  function prevPhoto() {
+    currentIndex = (currentIndex - 1 + PHOTOS.length) % PHOTOS.length;
+    openModal(currentIndex);
+  }
+
+  function toggleLike() {
+    const key = PHOTOS[currentIndex];
+    likes[key] = !likes[key];
+    localStorage.setItem("likes", JSON.stringify(likes));
+    updateLikeButton();
+  }
+
+  function updateLikeButton() {
+    document.querySelector(".like-btn").textContent =
+      likes[PHOTOS[currentIndex]] ? "💔 Unlike" : "❤️ Like";
+  }
+
+  function sortByLikes() {
+    PHOTOS.sort((a, b) => (likes[b] ? 1 : 0) - (likes[a] ? 1 : 0));
+    render();
+  }
+
+  render();
 </script>
 
 </body>

@@ -2,141 +2,235 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Justin Hilton Photography</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Justin Hilton Photography</title>
 
   <style>
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0b0b0b;
-      color: #eaeaea;
+      background: #0f0f0f;
+      color: #eee;
     }
 
-    header {
-      padding: 40px 20px;
-      text-align: center;
+    /* NAV */
+    nav {
       background: #111;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       border-bottom: 1px solid #222;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 2.2rem;
+    nav a {
+      color: #eee;
+      text-decoration: none;
+      margin-left: 16px;
+      font-weight: 600;
     }
 
-    header p {
-      margin-top: 10px;
-      opacity: 0.8;
+    nav a:hover {
+      color: #ffd166;
     }
 
+    /* BANNER */
+    .banner {
+      height: 300px;
+      background: url("photos/banner.jpg") center / cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .banner h1 {
+      background: rgba(0,0,0,0.6);
+      padding: 14px 26px;
+      border-radius: 10px;
+      font-size: 32px;
+    }
+
+    /* CONTROLS */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    button {
+      background: #1c1c1c;
+      border: 1px solid #333;
+      color: #eee;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #2a2a2a;
+    }
+
+    /* GALLERY */
     .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      padding: 20px;
+      column-count: 4;
+      column-gap: 16px;
+      padding: 16px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    @media (max-width: 1200px) {
+      .gallery { column-count: 3; }
+    }
+
+    @media (max-width: 800px) {
+      .gallery { column-count: 2; }
+    }
+
+    @media (max-width: 500px) {
+      .gallery { column-count: 1; }
     }
 
     .photo-card {
-      background: #111;
-      border: 1px solid #222;
+      break-inside: avoid;
+      margin-bottom: 16px;
+      background: #141414;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      border: 1px solid #222;
     }
 
     .photo-card img {
       width: 100%;
-      height: auto;
       display: block;
     }
 
     .vote-bar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 10px;
-      background: #0f0f0f;
+      align-items: center;
+      padding: 8px 10px;
     }
 
-    .vote-bar button {
-      background: #1e88e5;
+    .like-btn {
+      background: #ff4d6d;
       border: none;
       color: white;
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: 20px;
       cursor: pointer;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: bold;
     }
 
-    .vote-bar button:hover {
-      background: #1565c0;
+    .like-btn:hover {
+      background: #ff6f91;
+    }
+
+    .likes {
+      font-weight: bold;
+      opacity: 0.85;
     }
 
     footer {
       text-align: center;
       padding: 20px;
       font-size: 14px;
-      opacity: 0.6;
-      border-top: 1px solid #222;
+      opacity: 0.7;
     }
   </style>
 </head>
+
 <body>
 
-  <header>
-    <h1>Justin Hilton Photography</h1>
-    <p>Vote for your favorite photos 📸</p>
-  </header>
+  <!-- NAV -->
+  <nav>
+    <strong>Justin Hilton Photography</strong>
+    <div>
+      <a href="about.html">About</a>
+      <a href="game.html">Bobby’s B‑2 Bomber Game</a>
+    </div>
+  </nav>
 
-  <main class="gallery" id="gallery"></main>
+  <!-- BANNER -->
+  <div class="banner">
+    <h1>Vote for Your Favorite Photo</h1>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button id="sort-default">Default Order</button>
+    <button id="sort-liked">Sort by Most Liked ❤️</button>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="gallery" id="gallery"></div>
 
   <footer>
-    © Justin Hilton
+    📧 justinhiltonphotography@gmail.com
   </footer>
 
-  <!-- ✅ LOAD PHOTO LIST FIRST -->
+  <!-- PHOTOS LIST -->
   <script src="photos.js"></script>
 
-  <!-- ✅ GALLERY + VOTING LOGIC -->
+  <!-- GALLERY LOGIC -->
   <script>
     const gallery = document.getElementById("gallery");
 
-    function getVotes(photo) {
-      return Number(localStorage.getItem("vote_" + photo)) || 0;
-    }
-
-    function addVote(photo, counterEl) {
-      const votes = getVotes(photo) + 1;
-      localStorage.setItem("vote_" + photo, votes);
-      counterEl.textContent = votes;
-    }
-
-    PHOTOS.forEach(photo => {
-      const card = document.createElement("div");
-      card.className = "photo-card";
-
-      const img = document.createElement("img");
-      img.src = photo;
-      img.alt = "";
-
-      const voteBar = document.createElement("div");
-      voteBar.className = "vote-bar";
-
-      const count = document.createElement("span");
-      count.textContent = getVotes(photo);
-
-      const btn = document.createElement("button");
-      btn.textContent = "❤️ Vote";
-      btn.onclick = () => addVote(photo, count);
-
-      voteBar.appendChild(count);
-      voteBar.appendChild(btn);
-
-      card.appendChild(img);
-      card.appendChild(voteBar);
-      gallery.appendChild(card);
+    let photoData = PHOTOS.map(src => {
+      return {
+        src,
+        likes: Number(localStorage.getItem(src)) || 0
+      };
     });
+
+    function renderGallery(list) {
+      gallery.innerHTML = "";
+      list.forEach(photo => {
+        const card = document.createElement("div");
+        card.className = "photo-card";
+
+        const img = document.createElement("img");
+        img.src = photo.src;
+
+        const voteBar = document.createElement("div");
+        voteBar.className = "vote-bar";
+
+        const likes = document.createElement("span");
+        likes.className = "likes";
+        likes.textContent = `❤️ ${photo.likes}`;
+
+        const btn = document.createElement("button");
+        btn.className = "like-btn";
+        btn.textContent = "Like";
+
+        btn.onclick = () => {
+          photo.likes++;
+          localStorage.setItem(photo.src, photo.likes);
+          likes.textContent = `❤️ ${photo.likes}`;
+        };
+
+        voteBar.appendChild(likes);
+        voteBar.appendChild(btn);
+
+        card.appendChild(img);
+        card.appendChild(voteBar);
+        gallery.appendChild(card);
+      });
+    }
+
+    document.getElementById("sort-liked").onclick = () => {
+      const sorted = [...photoData].sort((a,b) => b.likes - a.likes);
+      renderGallery(sorted);
+    };
+
+    document.getElementById("sort-default").onclick = () => {
+      renderGallery(photoData);
+    };
+
+    renderGallery(photoData);
   </script>
 
 </body>

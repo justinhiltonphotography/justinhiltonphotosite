@@ -11,7 +11,9 @@
   --text: #222;
   --accent: #111;
 }
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -28,10 +30,12 @@ nav {
   background: #fff;
   border-bottom: 1px solid #ddd;
 }
+
 .nav-title {
   font-weight: 600;
   font-size: 18px;
 }
+
 .nav-links a {
   margin-left: 16px;
   text-decoration: none;
@@ -49,6 +53,7 @@ nav {
   align-items: center;
   justify-content: center;
 }
+
 .banner h1 {
   color: white;
   font-size: 42px;
@@ -63,6 +68,7 @@ nav {
   margin: 30px auto 10px;
   padding: 0 16px;
 }
+
 select {
   padding: 6px 10px;
   font-size: 14px;
@@ -76,6 +82,7 @@ select {
   margin: 20px auto 60px;
   padding: 0 16px;
 }
+
 @media (max-width: 1200px) { .gallery { column-count: 3; } }
 @media (max-width: 800px)  { .gallery { column-count: 2; } }
 @media (max-width: 500px)  { .gallery { column-count: 1; } }
@@ -83,7 +90,9 @@ select {
 .photo {
   break-inside: avoid;
   margin-bottom: 14px;
+  position: relative;
 }
+
 .photo img {
   width: 100%;
   display: block;
@@ -94,9 +103,11 @@ select {
 .like-bar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 6px 2px;
   font-size: 14px;
 }
+
 .like-btn {
   cursor: pointer;
   user-select: none;
@@ -112,16 +123,22 @@ select {
   justify-content: center;
   z-index: 1000;
 }
+
 .lightbox img {
   max-width: 90%;
   max-height: 80%;
 }
-.close, .prev, .next {
+
+.lightbox .close,
+.lightbox .prev,
+.lightbox .next {
   position: absolute;
   color: white;
   font-size: 36px;
   cursor: pointer;
+  user-select: none;
 }
+
 .close { top: 20px; right: 30px; }
 .prev { left: 30px; }
 .next { right: 30px; }
@@ -139,6 +156,7 @@ footer {
   text-align: center;
   padding: 40px 10px;
   font-size: 14px;
+  color: #444;
 }
 </style>
 </head>
@@ -170,7 +188,7 @@ footer {
 <div id="lightbox" class="lightbox">
   <span class="close">&times;</span>
   <span class="prev">&#10094;</span>
-  <img id="lightboxImg">
+  <img id="lightboxImg" />
   <span class="next">&#10095;</span>
   <div id="lightboxLike" class="lightbox-like">♡ Like</div>
 </div>
@@ -183,51 +201,16 @@ footer {
 </footer>
 
 <script src="photos.js"></script>
-
 <script>
-/* ==========================
-   JSONBIN CONFIG — CHANGE THESE
-========================== */
-const BIN_ID = "https://api.jsonbin.io/v3/b/694d5086ae596e708fb054cd/latest
-";
-const MASTER_KEY = "$2a$10$FiqRinztCOCKUBEU2aJP8.K6oZqAd7nE3k94Wtb2h0Zc4.kKDprCi";
-
-/* ========================== */
-
 const gallery = document.getElementById("gallery");
 const sortSelect = document.getElementById("sortSelect");
 
 let currentIndex = 0;
-let photos = [];
-let likesData = {};
-const userLikes = JSON.parse(localStorage.getItem("userLikes") || "{}");
-
-async function loadLikes() {
-  const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-    headers: { "X-Master-Key": MASTER_KEY }
-  });
-  const json = await res.json();
-  likesData = json.record || {};
-}
-
-async function saveLikes() {
-  await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": MASTER_KEY
-    },
-    body: JSON.stringify(likesData)
-  });
-}
-
-function buildPhotos() {
-  photos = PHOTOS.map(src => ({
-    src,
-    likes: likesData[src] || 0,
-    liked: userLikes[src] === true
-  }));
-}
+let photos = PHOTOS.map(p => ({
+  src: p,
+  likes: Number(localStorage.getItem("likes_" + p)) || 0,
+  liked: localStorage.getItem("liked_" + p) === "true"
+}));
 
 function render() {
   gallery.innerHTML = "";
@@ -256,25 +239,24 @@ function render() {
   });
 }
 
-async function toggleLike(i) {
+function toggleLike(i) {
   const p = photos[i];
   p.liked = !p.liked;
   p.likes += p.liked ? 1 : -1;
-
-  likesData[p.src] = p.likes;
-  userLikes[p.src] = p.liked;
-  localStorage.setItem("userLikes", JSON.stringify(userLikes));
-
-  await saveLikes();
+  localStorage.setItem("likes_" + p.src, p.likes);
+  localStorage.setItem("liked_" + p.src, p.liked);
   render();
-  updateLightbox();
 }
 
 sortSelect.onchange = () => {
   if (sortSelect.value === "likes") {
-    photos.sort((a, b) => b.likes - a.likes);
+    photos.sort((a,b) => b.likes - a.likes);
   } else {
-    buildPhotos();
+    photos = PHOTOS.map(p => ({
+      src: p,
+      likes: Number(localStorage.getItem("likes_" + p)) || 0,
+      liked: localStorage.getItem("liked_" + p) === "true"
+    }));
   }
   render();
 };
@@ -289,11 +271,13 @@ function openLightbox(i) {
   updateLightbox();
   lightbox.style.display = "flex";
 }
+
 function updateLightbox() {
   const p = photos[currentIndex];
   lightboxImg.src = p.src;
   lightboxLike.textContent = (p.liked ? "❤️ " : "♡ ") + p.likes + " likes";
 }
+
 document.querySelector(".close").onclick = () => lightbox.style.display = "none";
 document.querySelector(".prev").onclick = () => {
   currentIndex = (currentIndex - 1 + photos.length) % photos.length;
@@ -303,14 +287,13 @@ document.querySelector(".next").onclick = () => {
   currentIndex = (currentIndex + 1) % photos.length;
   updateLightbox();
 };
-lightboxLike.onclick = () => toggleLike(currentIndex);
 
-/* INIT */
-(async () => {
-  await loadLikes();
-  buildPhotos();
-  render();
-})();
+lightboxLike.onclick = () => {
+  toggleLike(currentIndex);
+  updateLightbox();
+};
+
+render();
 </script>
 
 </body>

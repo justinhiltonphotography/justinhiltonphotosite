@@ -4,95 +4,171 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Justin Hilton Photography</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #111;
+      color: #eee;
+    }
+
+    nav {
+      background: #000;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: 600;
+    }
+
+    header {
+      padding: 60px 20px;
+      text-align: center;
+      background: linear-gradient(to bottom, #222, #111);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    header p {
+      opacity: 0.8;
+    }
+
+    .gallery {
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .photo-card {
+      background: #1a1a1a;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .photo-card img {
+      width: 100%;
+      display: block;
+    }
+
+    .photo-info {
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .vote-btn {
+      background: #ff4d6d;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      cursor: pointer;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .vote-btn:hover {
+      background: #ff6b81;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      background: #000;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
+
 <body>
+
   <!-- NAV -->
-  <nav class="top-nav">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo">Justin Hilton Photography</a>
-      <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="about.html">About</a>
-      </div>
+  <nav>
+    <a href="index.html">Justin Hilton Photography</a>
+    <div>
+      <a href="about.html">About</a>
+      <a href="game.html">Bobby's B-2 Bomber Game</a>
     </div>
   </nav>
-  <!-- BANNER -->
-  <header class="banner">
-    <div class="banner-overlay"></div>
-    <div class="banner-content">
-      <h1>Justin Hilton Photography</h1>
-      <p>I take photos sometimes 🤗</p>
-    </div>
+
+  <!-- HEADER -->
+  <header>
+    <h1>Justin Hilton Photography</h1>
+    <p>Vote for your favorite photo 🤗</p>
   </header>
+
   <!-- GALLERY -->
-  <section class="gallery">
-    <h2 class="gallery-title">Gallery</h2>
-    <div class="masonry" id="gallery"></div>
-  </section>
-  <!-- LIGHTBOX -->
-  <div id="lightbox" class="lightbox">
-    <span class="close">&times;</span>
-    <span class="prev">&#10094;</span>
-    <span class="next">&#10095;</span>
-    <img class="lightbox-img" src="" alt="">
-  </div>
+  <section class="gallery" id="gallery"></section>
+
   <!-- FOOTER -->
-  <footer class="footer">
-    <p>📧 Contact me by email: <a href="mailto:justinhiltonphotography@gmail.com">justinhiltonphotography@gmail.com</a></p>
+  <footer>
+    📧 Contact: <a href="mailto:justinhiltonphotography@gmail.com">justinhiltonphotography@gmail.com</a>
   </footer>
+
   <script>
+    // 👇 LIST YOUR PHOTO FILES HERE
+    const PHOTO_FILES = [
+      "photo1.webp",
+      "photo2.webp",
+      "photo3.webp"
+    ];
+
     const gallery = document.getElementById("gallery");
-    const lightbox = document.getElementById("lightbox");
-    const lightboxImg = document.querySelector(".lightbox-img");
-    const closeBtn = document.querySelector(".close");
-    const prevBtn = document.querySelector(".prev");
-    const nextBtn = document.querySelector(".next");
-    let images = [];
-    let currentIndex = 0;
-    fetch("/api/photos")
-      .then(res => res.json())
-      .then(files => {
-        images = files;
-        files.forEach((file, i) => {
-          const img = document.createElement("img");
-          img.src = `photos/${file}`;
-          img.alt = "";
-          img.classList.add("gallery-img");
-          gallery.appendChild(img);
-          img.addEventListener("click", () => {
-            currentIndex = i;
-            openLightbox();
-          });
-        });
-      });
-    function openLightbox() {
-      lightbox.style.display = "flex";
-      lightboxImg.src = `photos/${images[currentIndex]}`;
+
+    function getVotes(name) {
+      return Number(localStorage.getItem("votes_" + name)) || 0;
     }
-    function closeLightbox() {
-      lightbox.style.display = "none";
-      lightboxImg.src = "";
+
+    function vote(name, countEl) {
+      const newVotes = getVotes(name) + 1;
+      localStorage.setItem("votes_" + name, newVotes);
+      countEl.textContent = newVotes;
     }
-    function prevImage() {
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
-      lightboxImg.src = `photos/${images[currentIndex]}`;
-    }
-    function nextImage() {
-      currentIndex = (currentIndex + 1) % images.length;
-      lightboxImg.src = `photos/${images[currentIndex]}`;
-    }
-    closeBtn.addEventListener("click", closeLightbox);
-    prevBtn.addEventListener("click", prevImage);
-    nextBtn.addEventListener("click", nextImage);
-    lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) closeLightbox();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") prevImage();
-      if (e.key === "ArrowRight") nextImage();
+
+    PHOTO_FILES.forEach(file => {
+      const card = document.createElement("div");
+      card.className = "photo-card";
+
+      const img = document.createElement("img");
+      img.src = "photos/" + file;
+
+      const info = document.createElement("div");
+      info.className = "photo-info";
+
+      const votes = document.createElement("span");
+      votes.textContent = getVotes(file);
+
+      const btn = document.createElement("button");
+      btn.className = "vote-btn";
+      btn.textContent = "❤️ Vote";
+
+      btn.onclick = () => vote(file, votes);
+
+      info.appendChild(votes);
+      info.appendChild(btn);
+
+      card.appendChild(img);
+      card.appendChild(info);
+
+      gallery.appendChild(card);
     });
   </script>
+
 </body>
 </html>

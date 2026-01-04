@@ -193,9 +193,15 @@ document.addEventListener("DOMContentLoaded", () => {
   window.photos = []; // global for lightbox
   let currentIndex = 0;
 
+  // Track which photos this browser has liked
+  let likedPhotos = JSON.parse(localStorage.getItem("liked_photos") || "[]");
+
   loadLikes().then((loadedLikes) => {
     likes = loadedLikes;
-    photos = PHOTOS.map(p => ({ src: p, liked: false }));
+    photos = PHOTOS.map(p => ({
+      src: p,
+      liked: likedPhotos.includes(p) // mark as liked if this browser liked it
+    }));
     render();
   });
 
@@ -228,11 +234,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function toggleLike(i) {
     const p = photos[i];
-    p.liked = !p.liked;
-    likes[p.src] = (likes[p.src] || 0) + (p.liked ? 1 : -1);
+
+    // Prevent multiple likes in the same browser
+    if (likedPhotos.includes(p.src)) {
+      alert("You’ve already liked this photo!");
+      return;
+    }
+
+    // Mark this photo as liked in this browser
+    likedPhotos.push(p.src);
+    localStorage.setItem("liked_photos", JSON.stringify(likedPhotos));
+    p.liked = true;
+
+    // Increment global likes
+    likes[p.src] = (likes[p.src] || 0) + 1;
+
     render();
     updateLightbox();
-    saveLikes(likes);
+    saveLikes(likes); // send update to JSONBin
   }
 
   if (sortSelect) {
@@ -240,7 +259,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sortSelect.value === "likes") {
         photos.sort((a,b) => (likes[b.src] || 0) - (likes[a.src] || 0));
       } else {
-        photos = PHOTOS.map(p => ({ src: p, liked: false }));
+        photos = PHOTOS.map(p => ({
+          src: p,
+          liked: likedPhotos.includes(p)
+        }));
       }
       render();
     };

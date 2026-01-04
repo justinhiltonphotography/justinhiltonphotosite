@@ -4,23 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Justin Hilton Photography</title>
-
 <style>
 :root {
   --bg: #f7f6f3;
   --text: #222;
   --accent: #111;
 }
-
 * { box-sizing: border-box; }
-
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
 }
-
 /* NAV */
 nav {
   display: flex;
@@ -30,19 +26,16 @@ nav {
   background: #fff;
   border-bottom: 1px solid #ddd;
 }
-
 .nav-title {
   font-weight: 600;
   font-size: 18px;
 }
-
 .nav-links a {
   margin-left: 16px;
   text-decoration: none;
   color: #333;
   font-weight: 500;
 }
-
 /* BANNER */
 .banner {
   position: relative;
@@ -53,7 +46,6 @@ nav {
   align-items: center;
   justify-content: center;
 }
-
 .banner h1 {
   color: white;
   font-size: 42px;
@@ -61,19 +53,16 @@ nav {
   letter-spacing: 0.5px;
   text-shadow: 0 4px 18px rgba(0,0,0,.45);
 }
-
 /* CONTROLS */
 .controls {
   max-width: 1400px;
   margin: 30px auto 10px;
   padding: 0 16px;
 }
-
 select {
   padding: 6px 10px;
   font-size: 14px;
 }
-
 /* MASONRY */
 .gallery {
   column-count: 4;
@@ -82,24 +71,20 @@ select {
   margin: 20px auto 60px;
   padding: 0 16px;
 }
-
 @media (max-width: 1200px) { .gallery { column-count: 3; } }
 @media (max-width: 800px)  { .gallery { column-count: 2; } }
 @media (max-width: 500px)  { .gallery { column-count: 1; } }
-
 .photo {
   break-inside: avoid;
   margin-bottom: 14px;
   position: relative;
 }
-
 .photo img {
   width: 100%;
   display: block;
   border-radius: 6px;
   cursor: pointer;
 }
-
 .like-bar {
   display: flex;
   justify-content: space-between;
@@ -107,12 +92,10 @@ select {
   padding: 6px 2px;
   font-size: 14px;
 }
-
 .like-btn {
   cursor: pointer;
   user-select: none;
 }
-
 /* LIGHTBOX */
 .lightbox {
   position: fixed;
@@ -123,12 +106,10 @@ select {
   justify-content: center;
   z-index: 1000;
 }
-
 .lightbox img {
   max-width: 90%;
   max-height: 80%;
 }
-
 .lightbox .close,
 .lightbox .prev,
 .lightbox .next {
@@ -138,11 +119,9 @@ select {
   cursor: pointer;
   user-select: none;
 }
-
 .close { top: 20px; right: 30px; }
 .prev { left: 30px; }
 .next { right: 30px; }
-
 .lightbox-like {
   position: absolute;
   bottom: 30px;
@@ -150,7 +129,6 @@ select {
   font-size: 18px;
   cursor: pointer;
 }
-
 /* FOOTER */
 footer {
   text-align: center;
@@ -160,7 +138,6 @@ footer {
 }
 </style>
 </head>
-
 <body>
 
 <nav>
@@ -200,100 +177,101 @@ footer {
   </a>
 </footer>
 
+<!-- Scripts -->
 <script src="photos.js"></script>
+<script src="likes.js"></script>
+
 <script>
-const gallery = document.getElementById("gallery");
-const sortSelect = document.getElementById("sortSelect");
+document.addEventListener("DOMContentLoaded", () => {
+  const gallery = document.getElementById("gallery");
+  const sortSelect = document.getElementById("sortSelect");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+  const lightboxLike = document.getElementById("lightboxLike");
 
-let currentIndex = 0;
-let photos = PHOTOS.map(p => ({
-  src: p,
-  likes: Number(localStorage.getItem("likes_" + p)) || 0,
-  liked: localStorage.getItem("liked_" + p) === "true"
-}));
+  let likes = {};
+  window.photos = []; // global for lightbox
+  let currentIndex = 0;
 
-function render() {
-  gallery.innerHTML = "";
-  photos.forEach((p, i) => {
-    const div = document.createElement("div");
-    div.className = "photo";
-
-    const img = document.createElement("img");
-    img.src = p.src;
-    img.onclick = () => openLightbox(i);
-
-    const bar = document.createElement("div");
-    bar.className = "like-bar";
-
-    const btn = document.createElement("span");
-    btn.className = "like-btn";
-    btn.textContent = p.liked ? "❤️" : "♡";
-    btn.onclick = () => toggleLike(i);
-
-    const count = document.createElement("span");
-    count.textContent = p.likes + " likes";
-
-    bar.append(btn, count);
-    div.append(img, bar);
-    gallery.appendChild(div);
+  loadLikes().then((loadedLikes) => {
+    likes = loadedLikes;
+    photos = PHOTOS.map(p => ({ src: p, liked: false }));
+    render();
   });
-}
 
-function toggleLike(i) {
-  const p = photos[i];
-  p.liked = !p.liked;
-  p.likes += p.liked ? 1 : -1;
-  localStorage.setItem("likes_" + p.src, p.likes);
-  localStorage.setItem("liked_" + p.src, p.liked);
-  render();
-}
+  function render() {
+    gallery.innerHTML = "";
+    photos.forEach((p, i) => {
+      const div = document.createElement("div");
+      div.className = "photo";
 
-sortSelect.onchange = () => {
-  if (sortSelect.value === "likes") {
-    photos.sort((a,b) => b.likes - a.likes);
-  } else {
-    photos = PHOTOS.map(p => ({
-      src: p,
-      likes: Number(localStorage.getItem("likes_" + p)) || 0,
-      liked: localStorage.getItem("liked_" + p) === "true"
-    }));
+      const img = document.createElement("img");
+      img.src = p.src;
+      img.onclick = () => openLightbox(i);
+
+      const bar = document.createElement("div");
+      bar.className = "like-bar";
+
+      const btn = document.createElement("span");
+      btn.className = "like-btn";
+      btn.textContent = p.liked ? "❤️" : "♡";
+      btn.onclick = () => toggleLike(i);
+
+      const count = document.createElement("span");
+      count.textContent = (likes[p.src] || 0) + " likes";
+
+      bar.append(btn, count);
+      div.append(img, bar);
+      gallery.appendChild(div);
+    });
   }
-  render();
-};
 
-/* LIGHTBOX */
-const lightbox = document.getElementById("lightbox");
-const lightboxImg = document.getElementById("lightboxImg");
-const lightboxLike = document.getElementById("lightboxLike");
+  function toggleLike(i) {
+    const p = photos[i];
+    p.liked = !p.liked;
+    likes[p.src] = (likes[p.src] || 0) + (p.liked ? 1 : -1);
+    render();
+    updateLightbox();
+    saveLikes(likes);
+  }
 
-function openLightbox(i) {
-  currentIndex = i;
-  updateLightbox();
-  lightbox.style.display = "flex";
-}
+  if (sortSelect) {
+    sortSelect.onchange = () => {
+      if (sortSelect.value === "likes") {
+        photos.sort((a,b) => (likes[b.src] || 0) - (likes[a.src] || 0));
+      } else {
+        photos = PHOTOS.map(p => ({ src: p, liked: false }));
+      }
+      render();
+    };
+  }
 
-function updateLightbox() {
-  const p = photos[currentIndex];
-  lightboxImg.src = p.src;
-  lightboxLike.textContent = (p.liked ? "❤️ " : "♡ ") + p.likes + " likes";
-}
+  function openLightbox(i) {
+    currentIndex = i;
+    updateLightbox();
+    lightbox.style.display = "flex";
+  }
 
-document.querySelector(".close").onclick = () => lightbox.style.display = "none";
-document.querySelector(".prev").onclick = () => {
-  currentIndex = (currentIndex - 1 + photos.length) % photos.length;
-  updateLightbox();
-};
-document.querySelector(".next").onclick = () => {
-  currentIndex = (currentIndex + 1) % photos.length;
-  updateLightbox();
-};
+  function updateLightbox() {
+    const p = photos[currentIndex];
+    lightboxImg.src = p.src;
+    lightboxLike.textContent = (p.liked ? "❤️ " : "♡ ") + (likes[p.src] || 0) + " likes";
+  }
 
-lightboxLike.onclick = () => {
-  toggleLike(currentIndex);
-  updateLightbox();
-};
-
-render();
+  document.querySelector(".close").onclick = () => lightbox.style.display = "none";
+  document.querySelector(".prev").onclick = () => {
+    currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+    updateLightbox();
+  };
+  document.querySelector(".next").onclick = () => {
+    currentIndex = (currentIndex + 1) % photos.length;
+    updateLightbox();
+  };
+  lightboxLike.onclick = () => {
+    toggleLike(currentIndex);
+    updateLightbox();
+  };
+});
 </script>
 
 </body>

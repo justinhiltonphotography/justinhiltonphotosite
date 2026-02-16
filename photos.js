@@ -88,5 +88,6 @@ const PHOTOS = [
   "photos/unbalanced.webp",
   "photos/vineyards morning-9591.webp",
   "photos/water.webp",
-  "photos/your everyday.webp"
+  "photos/your everyday.webp",
+  "photos/Campfire.webp"
 ];

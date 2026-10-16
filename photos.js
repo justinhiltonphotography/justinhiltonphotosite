@@ -89,5 +89,10 @@ const PHOTOS = [
   "photos/vineyards morning-9591.webp",
   "photos/water.webp",
   "photos/your everyday.webp",
-  "photos/Campfire.webp"
+  "photos/Campfire.webp",
+ "photos/grape sunset.webp",
+"photos/sunset -04743.webp",
+"photos/sunset -04747.webp",
+"photos/sunset -04750.webp",
+"photos/sunset -04754.webp",
 ];

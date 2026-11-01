@@ -98,5 +98,15 @@ const PHOTOS = [
 "photos/leaf.webp",
 "photos/flag.webp",
 "photos/tree.webp",
-"photos/water droplet.webp"
+"photos/water droplet.webp",
+"photos/MACK + LIANA BETROTHAL-05189.webp",
+"photos/MACK + LIANA BETROTHAL-05203.webp",
+"photos/MACK + LIANA BETROTHAL-05252.webp",
+"photos/march 25th-02649.webp",
+"photos/march 25th-02693.webp",
+"photos/march 29th-.webp",
+"photos/march 29th-02730.webp",
+"photos/march 29th-02797.webp",
+"photos/missiles-02601.webp",
+"photos/missiles-02603.webp"
 ];
